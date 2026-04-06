@@ -34,7 +34,7 @@ streamlit run app.py
 
 ## Where ML Enters
 
-The main ML component is a causal sequence encoder that learns a compact cursor-motion fingerprint for each player from clean telemetry windows. A second learned layer calibrates drift, feature anomalies, and confounders into a cheat-likelihood score.
+The main ML component is a fingerprint model trained on **causal windowed cursor telemetry** that learns a compact cursor-motion embedding for each player from clean sessions. A second learned layer calibrates drift, feature anomalies, and confounders into a cheat-likelihood score.
 
 That means the project uses:
 

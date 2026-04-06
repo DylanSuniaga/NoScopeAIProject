@@ -148,7 +148,7 @@ Build a **NoScope-Bio Demo** with six components.
 
 ### 1. Synthetic Motor-Telemetry Generator
 
-Generate telemetry for about 20 synthetic players.
+Generate telemetry for roughly a dozen or more synthetic players. The current demo build uses 14.
 
 Each player should have stable individual tendencies across:
 
@@ -174,8 +174,8 @@ Generate:
 
 - clean baseline sessions
 - clean evaluation sessions
-- suspicious sessions with `aimbot_like_locking`
-- suspicious sessions with `triggerbot_like_clicking`
+- suspicious sessions with `aimbot`
+- suspicious sessions with `triggerbot`
 - suspicious sessions with `macro_consistency`
 - confounder sessions with `high_ping`
 - confounder sessions with `sensitivity_change`
@@ -214,7 +214,7 @@ Segment the motion stream online using:
 
 ### 3. Fingerprint Model
 
-Train a lightweight causal temporal model on clean windows to identify player ID. Use the penultimate layer as the behavioral fingerprint embedding.
+Train a lightweight fingerprint model on clean causal windows to identify player ID. Use the penultimate layer as the behavioral fingerprint embedding.
 
 Why this works:
 

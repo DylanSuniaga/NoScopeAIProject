@@ -2,7 +2,7 @@
 
 ## What Currently Concerns Me
 
-### 1. The scientific framing is stronger than the current implementation in a few places
+### 1. The scientific framing and the implementation are now much closer
 
 The right story for this project is now clear:
 
@@ -11,23 +11,23 @@ The right story for this project is now clear:
 - player-specific motor fingerprints
 - confounder-aware validation
 
-That framing is stronger than a target-relative anti-cheat story, because in a real server-side or replay-derived setting we often do **not** know the exact target state needed to compute features like `aim_error` or `aligned`.
+That framing is stronger than a target-relative anti-cheat story, because in a real server-side or replay-derived setting we often do **not** know the exact target state needed to compute features like aim alignment or target error directly.
 
 Main takeaway:
 
 - the project direction is now more defensible
-- the documentation should follow that framing
-- the codebase should continue moving away from target-relative live features
+- the documentation now follows that framing
+- the codebase now uses cursor-only live features for the actual model pipeline
 
 ### 2. The detector is split-calibrated for the demo, but the evaluation is still synthetic
 
 The current prototype works end-to-end with a learned calibration layer on top of the behavioral fingerprint and causal gate. The latest exported synthetic demo snapshot is:
 
-- accuracy: `0.986`
-- precision: `0.968`
-- recall: `1.000`
-- false positive rate: `0.025`
-- false negative rate: `0.000`
+- accuracy: `0.969`
+- precision: `0.976`
+- recall: `0.952`
+- false positive rate: `0.018`
+- false negative rate: `0.048`
 
 These results are useful for the class demo, but they are still synthetic holdout results.
 
@@ -109,6 +109,7 @@ That supports the shift to:
 - per-player baselines
 - cheat modes for `aimbot`, `triggerbot`, and `macro_consistency`
 - confounder modes for `high_ping`, `sensitivity_change`, and `patch_shift`
+- cursor-only replay with fading trails and click markers
 - live timeline animation in the UI
 - replay-style visualization
 - server telemetry plots

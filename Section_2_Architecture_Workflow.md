@@ -60,8 +60,8 @@ The generator is designed to simulate more realistic human motor behavior using:
 It also injects controlled session types:
 
 - `clean`
-- `aimbot_like_locking`
-- `triggerbot_like_clicking`
+- `aimbot`
+- `triggerbot`
 - `macro_consistency`
 - `high_ping`
 - `sensitivity_change`
@@ -82,7 +82,7 @@ Online segmentation is based on movement structure such as:
 
 The main ML component is a causal temporal fingerprint model.
 
-It is trained on clean telemetry windows to predict player identity. The hidden representation of that model becomes the player's behavioral embedding.
+It is trained on clean telemetry windows to predict player identity. In the current prototype, this is implemented with a lightweight fingerprint network over flattened causal windows. The hidden representation of that model becomes the player's behavioral embedding.
 
 This is the main non-trivial ML contribution because it performs:
 
@@ -143,18 +143,23 @@ Representative cursor and behavioral fields:
 - `speed`
 - `acceleration`
 - `jerk`
-- `heading`
+- `heading_sin`, `heading_cos`
 - `heading_change`
 - `angular_velocity`
 - `curvature`
-- `burst_id`
+- `motion_active`
 - `burst_progress`
+- `burst_duration_ms`
 - `pause_ms`
+- `local_straightness`
 - `click`
 - `time_since_click_ms`
-- `path_tortuosity`
+- `click_motion_coupling`
+- `last_click_interval_ms`
+- `last_stabilization_delay_ms`
 - `direction_entropy_short`
 - `roughness_score`
+- `speed_autocorr_short`
 
 Representative server and environment fields:
 
@@ -171,11 +176,12 @@ Representative server and environment fields:
 ### Example Input Row
 
 ```text
-session_id=P07_locking_01, player_id=P07, tick=418, t=20.90,
+session_id=P07_aimbot_02, player_id=P07, tick=418, t=20.90,
 cursor_x=0.215, cursor_y=-0.041, dx=0.071, dy=-0.012,
 speed=0.188, acceleration=0.041, jerk=0.013,
-heading_change=0.022, curvature=0.018, pause_ms=0,
-click=1, time_since_click_ms=142,
+heading_change=0.022, curvature=0.018, local_straightness=0.93,
+direction_entropy_short=0.21, click=1, time_since_click_ms=142,
+click_motion_coupling=3.41, last_stabilization_delay_ms=54,
 ping_ms=31.7, jitter_ms=2.3, packet_loss_pct=0.08, command_age_ms=19.5
 ```
 
@@ -240,11 +246,11 @@ Evaluation is separated into:
 
 Latest held-out test snapshot from the current synthetic evaluation:
 
-- accuracy: `0.986`
-- precision: `0.968`
-- recall: `1.000`
-- false positive rate: `0.025`
-- false negative rate: `0.000`
+- accuracy: `0.969`
+- precision: `0.976`
+- recall: `0.952`
+- false positive rate: `0.018`
+- false negative rate: `0.048`
 
 Important note:
 
@@ -263,7 +269,7 @@ The UI is designed to show:
 
 The ML contribution is not a simple thresholding system.
 
-1. A causal sequence model learns a compact behavioral embedding from raw cursor-motion windows.
+1. A fingerprint model learns a compact behavioral embedding from raw cursor-motion windows.
 2. The system learns player-specific baseline distributions in embedding space.
 3. A second learned layer maps anomaly evidence and confounders into a calibrated cheat probability.
 
