@@ -196,7 +196,7 @@ def build_combined_animation_figure(
     first_latest = first_trail.iloc[-1]
     first_scores = score_df[score_df["t_end_s"] <= first_time]
     first_score = first_scores.iloc[-1] if not first_scores.empty else score_df.iloc[0]
-    first_clicks = first_trail[first_trail["click"] > 0]
+    first_clicks = first_trail[first_trail["fire_input"] > 0]
     y_max = max(float(score_df["raw_score"].max()), float(score_df["gated_score"].max()), float(threshold)) * 1.1
 
     fig = make_subplots(
@@ -205,32 +205,32 @@ def build_combined_animation_figure(
         shared_xaxes=False,
         vertical_spacing=0.08,
         row_heights=[0.42, 0.26, 0.32],
-        subplot_titles=("Cursor Replay Feed", "Model Output", "Server Telemetry"),
+        subplot_titles=("View-Angle Replay Feed", "Model Output", "Server Telemetry"),
     )
 
     fig.add_trace(
-        go.Scatter(x=first_old_trail["cursor_x"], y=first_old_trail["cursor_y"], mode="lines", name="Older Cursor Trail", line=dict(color="#7cc9ff", width=2), opacity=0.22),
+        go.Scatter(x=first_old_trail["view_yaw"], y=first_old_trail["view_pitch"], mode="lines", name="Older Aim Trace", line=dict(color="#7cc9ff", width=2), opacity=0.22),
         row=1,
         col=1,
     )
     fig.add_trace(
-        go.Scatter(x=first_recent_trail["cursor_x"], y=first_recent_trail["cursor_y"], mode="lines", name="Recent Cursor Trail", line=dict(color="#ff6b35", width=3)),
+        go.Scatter(x=first_recent_trail["view_yaw"], y=first_recent_trail["view_pitch"], mode="lines", name="Recent Aim Trace", line=dict(color="#ff6b35", width=3)),
         row=1,
         col=1,
     )
     fig.add_trace(
         go.Scatter(
-            x=first_clicks["cursor_x"],
-            y=first_clicks["cursor_y"],
+            x=first_clicks["view_yaw"],
+            y=first_clicks["view_pitch"],
             mode="markers",
-            name="Clicks",
+            name="Fire Inputs",
             marker=dict(size=10, symbol="diamond", color="#f6c453", line=dict(width=1, color="#40330a")),
         ),
         row=1,
         col=1,
     )
     fig.add_trace(
-        go.Scatter(x=[first_latest["cursor_x"]], y=[first_latest["cursor_y"]], mode="markers", name="Cursor", marker=dict(size=18, symbol="cross", color="#ff6b35")),
+        go.Scatter(x=[first_latest["view_yaw"]], y=[first_latest["view_pitch"]], mode="markers", name="Current Aim", marker=dict(size=18, symbol="cross", color="#ff6b35")),
         row=1,
         col=1,
     )
@@ -300,7 +300,7 @@ def build_combined_animation_figure(
             continue
         latest = frame_trail.iloc[-1]
         old_trail, recent_trail = _split_trail(frame_trail)
-        click_points = frame_trail[frame_trail["click"] > 0]
+        click_points = frame_trail[frame_trail["fire_input"] > 0]
         observed_scores = score_df[score_df["t_end_s"] <= current_t]
         if observed_scores.empty:
             continue
@@ -310,10 +310,10 @@ def build_combined_animation_figure(
             go.Frame(
                 name=name,
                 data=[
-                    go.Scatter(x=old_trail["cursor_x"], y=old_trail["cursor_y"]),
-                    go.Scatter(x=recent_trail["cursor_x"], y=recent_trail["cursor_y"]),
-                    go.Scatter(x=click_points["cursor_x"], y=click_points["cursor_y"]),
-                    go.Scatter(x=[latest["cursor_x"]], y=[latest["cursor_y"]]),
+                    go.Scatter(x=old_trail["view_yaw"], y=old_trail["view_pitch"]),
+                    go.Scatter(x=recent_trail["view_yaw"], y=recent_trail["view_pitch"]),
+                    go.Scatter(x=click_points["view_yaw"], y=click_points["view_pitch"]),
+                    go.Scatter(x=[latest["view_yaw"]], y=[latest["view_pitch"]]),
                     go.Scatter(x=observed_scores["t_end_s"], y=observed_scores["raw_score"]),
                     go.Scatter(x=observed_scores["t_end_s"], y=observed_scores["gated_score"]),
                     go.Scatter(x=[score_row["t_end_s"]], y=[score_row["raw_score"]]),
@@ -439,30 +439,30 @@ def build_replay_figure(
     old_trail, recent_trail = _split_trail(sampled)
     fig.add_trace(
         go.Scatter(
-            x=old_trail["cursor_x"],
-            y=old_trail["cursor_y"],
+            x=old_trail["view_yaw"],
+            y=old_trail["view_pitch"],
             mode="lines",
-            name="Older Cursor Trail",
+            name="Older Aim Trace",
             line=dict(color="#7cc9ff", width=2),
             opacity=0.22,
         )
     )
     fig.add_trace(
         go.Scatter(
-            x=recent_trail["cursor_x"],
-            y=recent_trail["cursor_y"],
+            x=recent_trail["view_yaw"],
+            y=recent_trail["view_pitch"],
             mode="lines",
-            name="Recent Cursor Trail",
+            name="Recent Aim Trace",
             line=dict(color="#ef553b", width=3),
         )
     )
     if current_t is not None:
         current_rows = replay_df[replay_df["t"] <= current_t]
         latest = current_rows.iloc[-1] if not current_rows.empty else sampled.iloc[-1]
-        click_points = current_rows[current_rows["click"] > 0].tail(10)
+        click_points = current_rows[current_rows["fire_input"] > 0].tail(10)
     else:
         latest = sampled.iloc[-1]
-        click_points = replay_df[replay_df["click"] > 0].tail(10)
+        click_points = replay_df[replay_df["fire_input"] > 0].tail(10)
 
     dark_mode = replay_style == "FPS Overlay"
     background = "#091014" if dark_mode else "#ffffff"
@@ -471,26 +471,26 @@ def build_replay_figure(
 
     fig.add_trace(
         go.Scatter(
-            x=click_points["cursor_x"],
-            y=click_points["cursor_y"],
+            x=click_points["view_yaw"],
+            y=click_points["view_pitch"],
             mode="markers",
-            name="Recent Clicks",
+            name="Recent Fire Inputs",
             marker=dict(size=10, symbol="diamond", color="#f6c453", line=dict(width=1, color="#40330a")),
         )
     )
     fig.add_trace(
         go.Scatter(
-            x=[latest["cursor_x"]],
-            y=[latest["cursor_y"]],
+            x=[latest["view_yaw"]],
+            y=[latest["view_pitch"]],
             mode="markers",
-            name="Current Cursor",
+            name="Current Aim",
             marker=dict(size=18, symbol="cross", color="#ff6b35"),
         )
     )
     gap = 0.035
     arm = 0.08
-    cx = float(latest["cursor_x"])
-    cy = float(latest["cursor_y"])
+    cx = float(latest["view_yaw"])
+    cy = float(latest["view_pitch"])
     reticle_color = "#ff6b35"
     fig.add_shape(type="line", x0=cx - arm, y0=cy, x1=cx - gap, y1=cy, line=dict(color=reticle_color, width=2))
     fig.add_shape(type="line", x0=cx + gap, y0=cy, x1=cx + arm, y1=cy, line=dict(color=reticle_color, width=2))
@@ -508,7 +508,7 @@ def build_replay_figure(
         font=dict(color=foreground, size=12, family="Courier New"),
     )
     fig.update_layout(
-        title="Cursor Replay View",
+        title="View-Angle Replay View",
         template="plotly_dark" if dark_mode else "plotly_white",
         xaxis=dict(range=[-1.1, 1.1], title="", visible=False, showgrid=False, zeroline=False),
         yaxis=dict(range=[-1.1, 1.1], title="", visible=False, showgrid=False, zeroline=False, scaleanchor="x", scaleratio=1),
@@ -557,10 +557,10 @@ def build_animated_replay_figure(
 
     fig = go.Figure(
         data=[
-            go.Scatter(x=[first["cursor_x"]], y=[first["cursor_y"]], mode="lines", name="Older Cursor Trail", line=dict(color="#7cc9ff", width=2), opacity=0.22),
-            go.Scatter(x=[first["cursor_x"]], y=[first["cursor_y"]], mode="lines", name="Recent Cursor Trail", line=dict(color="#ff6b35", width=2)),
-            go.Scatter(x=[], y=[], mode="markers", name="Clicks", marker=dict(size=10, symbol="diamond", color="#f6c453", line=dict(width=1, color="#40330a"))),
-            go.Scatter(x=[first["cursor_x"]], y=[first["cursor_y"]], mode="markers", name="Cursor", marker=dict(size=18, symbol="cross", color="#ff6b35")),
+            go.Scatter(x=[first["view_yaw"]], y=[first["view_pitch"]], mode="lines", name="Older Aim Trace", line=dict(color="#7cc9ff", width=2), opacity=0.22),
+            go.Scatter(x=[first["view_yaw"]], y=[first["view_pitch"]], mode="lines", name="Recent Aim Trace", line=dict(color="#ff6b35", width=2)),
+            go.Scatter(x=[], y=[], mode="markers", name="Fire Inputs", marker=dict(size=10, symbol="diamond", color="#f6c453", line=dict(width=1, color="#40330a"))),
+            go.Scatter(x=[first["view_yaw"]], y=[first["view_pitch"]], mode="markers", name="Current Aim", marker=dict(size=18, symbol="cross", color="#ff6b35")),
         ]
     )
     frames = []
@@ -570,15 +570,15 @@ def build_animated_replay_figure(
             continue
         latest = frame_df.iloc[-1]
         old_trail, recent_trail = _split_trail(frame_df)
-        click_points = frame_df[frame_df["click"] > 0]
+        click_points = frame_df[frame_df["fire_input"] > 0]
         frames.append(
             go.Frame(
                 name=name,
                 data=[
-                    go.Scatter(x=old_trail["cursor_x"], y=old_trail["cursor_y"]),
-                    go.Scatter(x=recent_trail["cursor_x"], y=recent_trail["cursor_y"]),
-                    go.Scatter(x=click_points["cursor_x"], y=click_points["cursor_y"]),
-                    go.Scatter(x=[latest["cursor_x"]], y=[latest["cursor_y"]]),
+                    go.Scatter(x=old_trail["view_yaw"], y=old_trail["view_pitch"]),
+                    go.Scatter(x=recent_trail["view_yaw"], y=recent_trail["view_pitch"]),
+                    go.Scatter(x=click_points["view_yaw"], y=click_points["view_pitch"]),
+                    go.Scatter(x=[latest["view_yaw"]], y=[latest["view_pitch"]]),
                 ],
                 traces=[0, 1, 2, 3],
             )
@@ -596,7 +596,7 @@ def build_animated_replay_figure(
         font=dict(color=foreground, size=12, family="Courier New"),
     )
     fig.update_layout(
-        title="Browser Playback Replay",
+        title="Browser Playback View-Angle Replay",
         template="plotly_dark" if dark_mode else "plotly_white",
         xaxis=dict(range=[-1.1, 1.1], title="", visible=False, showgrid=False, zeroline=False),
         yaxis=dict(range=[-1.1, 1.1], title="", visible=False, showgrid=False, zeroline=False, scaleanchor="x", scaleratio=1),
@@ -751,7 +751,7 @@ def render_feature_shift(result: dict):
 
 def main():
     st.title("NoScope-Bio")
-    st.caption("Personalized behavioral anti-cheat demo")
+    st.caption("Personalized aim-telemetry anti-cheat demo")
 
     artifacts = get_artifacts()
     if "decision_threshold" not in artifacts:
@@ -834,7 +834,7 @@ def main():
         st.session_state["show_playback_studio"] = True
 
     if st.session_state.get("show_playback_studio", False):
-        st.caption("One Play button now drives replay, model score, and server telemetry together. The replay uses a trailing window so older points fall away.")
+        st.caption("One Play button now drives the view-angle replay, model score, and server telemetry together. The replay uses a trailing window so older points fall away.")
         score_times = [
             float(t)
             for t in result["window_scores"]["t_end_s"].tolist()
@@ -865,13 +865,32 @@ def main():
 
     st.subheader("Test Results")
     eval_metrics = artifacts["evaluation_metrics"]
-    metric_cols = st.columns(len(eval_metrics))
-    for col, (name, value) in zip(metric_cols, eval_metrics.items()):
+    headline_metrics = [
+        "accuracy",
+        "balanced_accuracy",
+        "precision",
+        "recall",
+        "specificity",
+        "majority_baseline_accuracy",
+    ]
+    metric_cols = st.columns(len(headline_metrics))
+    for col, name in zip(metric_cols, headline_metrics):
+        value = eval_metrics[name]
         col.metric(name.replace("_", " ").title(), f"{value:.3f}")
 
     split_metrics_df = pd.DataFrame(artifacts["split_metrics"]).T.reset_index().rename(columns={"index": "split"})
-    st.caption("These are held-out test metrics by default. The table below shows calibration-train, validation, and test splits.")
+    st.caption("These are held-out test metrics by default. The table below shows calibration-train, validation, and test splits, including class-balance-aware metrics.")
     st.dataframe(split_metrics_df, use_container_width=True, hide_index=True)
+
+    st.subheader("Bayesian Quality Check")
+    st.caption(
+        "Posterior cheat probabilities are computed from Bayes' theorem using the measured sensitivity and specificity. This helps show whether the detector is still useful when cheating is rare in deployment."
+    )
+    bayes_df = artifacts["bayes_reference"].copy()
+    bayes_df["assumed_prevalence"] = bayes_df["assumed_prevalence"].map(lambda value: f"{value * 100:.2f}%")
+    for column in ["posterior_cheat_given_positive", "posterior_legit_given_negative", "posterior_cheat_given_negative"]:
+        bayes_df[column] = bayes_df[column].map(lambda value: f"{value * 100:.2f}%")
+    st.dataframe(bayes_df, use_container_width=True, hide_index=True)
 
     with st.expander("Feature Schema"):
         st.write({"behavioral_features": DEMO_FEATURE_COLUMNS, "server_features": SERVER_TELEMETRY_COLUMNS})

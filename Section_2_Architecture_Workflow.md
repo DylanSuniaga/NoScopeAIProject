@@ -2,12 +2,13 @@
 
 ## System Overview
 
-`NoScope-Bio` is a personalized behavioral anti-cheat prototype built around **target-agnostic cursor motor modeling**.
+`NoScope-Bio` is a personalized behavioral anti-cheat prototype built around **target-agnostic aim telemetry modeling**.
 
 Instead of assuming we know where an enemy target was, the system uses only:
 
-- cursor motion
-- clicks
+- view angles such as yaw and pitch
+- angular motion and derived aim vectors
+- fire-input timing
 - timestamps
 - server-side telemetry
 
@@ -41,12 +42,12 @@ This component produces baseline and evaluation sessions for multiple synthetic 
 
 Each player has a stable individual style across:
 
-- cursor delta and cursor velocity
+- view-angle delta and angular velocity
 - pause and burst timing
 - correction style
 - micro-jitter amplitude
 - curvature tendencies
-- click cadence
+- fire cadence
 - server-visible network conditions
 
 The generator is designed to simulate more realistic human motor behavior using:
@@ -69,7 +70,7 @@ It also injects controlled session types:
 
 ### 2. Feature Preprocessing And Online Segmentation
 
-The raw cursor stream is converted into a causal windowed sequence representation so the model compares recent behavioral intervals rather than full-session summaries.
+The raw view-angle stream is converted into a causal windowed sequence representation so the model compares recent behavioral intervals rather than full-session summaries.
 
 Online segmentation is based on movement structure such as:
 
@@ -102,7 +103,7 @@ During evaluation, each new session is processed in causal time order. For each 
 - movement regularity shifts
 - direction-entropy changes
 - curvature and jerk changes
-- click-motion coupling changes
+- fire-motion coupling changes
 
 These scores are streamed into an online change detector to identify abrupt sustained transitions.
 
@@ -123,7 +124,7 @@ The Streamlit UI supports:
 
 - selecting or uploading a session
 - viewing a suspicion timeline
-- viewing a cursor-only replay
+- viewing a yaw/pitch replay
 - running a live timeline animation
 - viewing server telemetry over time
 - viewing explanation text for why the session was flagged or suppressed
@@ -136,14 +137,15 @@ The main input is a telemetry session CSV. Each row represents one causal time-s
 
 ### Input Examples
 
-Representative cursor and behavioral fields:
+Representative view-angle and behavioral fields:
 
-- `cursor_x`, `cursor_y`
-- `dx`, `dy`
-- `speed`
-- `acceleration`
-- `jerk`
-- `heading_sin`, `heading_cos`
+- `view_yaw`, `view_pitch`
+- `yaw_delta`, `pitch_delta`
+- `angular_speed`
+- `angular_energy`
+- `angular_acceleration`
+- `angular_jerk`
+- `aim_vector_x`, `aim_vector_y`, `aim_vector_z`
 - `heading_change`
 - `angular_velocity`
 - `curvature`
@@ -151,15 +153,20 @@ Representative cursor and behavioral fields:
 - `burst_progress`
 - `burst_duration_ms`
 - `pause_ms`
-- `local_straightness`
-- `click`
-- `time_since_click_ms`
-- `click_motion_coupling`
-- `last_click_interval_ms`
-- `last_stabilization_delay_ms`
+- `view_straightness`
+- `stability_score`
+- `yaw_reversal`, `pitch_reversal`
+- `fire_input`
+- `time_since_fire_ms`
+- `fire_motion_coupling`
+- `last_fire_interval_ms`
+- `last_stabilization_to_fire_ms`
+- `flick_event`
+- `flick_magnitude`
+- `time_since_flick_ms`
 - `direction_entropy_short`
-- `roughness_score`
-- `speed_autocorr_short`
+- `micro_correction_score`
+- `angular_speed_autocorr_short`
 
 Representative server and environment fields:
 
@@ -177,11 +184,11 @@ Representative server and environment fields:
 
 ```text
 session_id=P07_aimbot_02, player_id=P07, tick=418, t=20.90,
-cursor_x=0.215, cursor_y=-0.041, dx=0.071, dy=-0.012,
-speed=0.188, acceleration=0.041, jerk=0.013,
-heading_change=0.022, curvature=0.018, local_straightness=0.93,
-direction_entropy_short=0.21, click=1, time_since_click_ms=142,
-click_motion_coupling=3.41, last_stabilization_delay_ms=54,
+view_yaw=0.215, view_pitch=-0.041, yaw_delta=0.071, pitch_delta=-0.012,
+angular_speed=0.188, angular_acceleration=0.041, angular_jerk=0.013,
+heading_change=0.022, curvature=0.018, view_straightness=0.93,
+direction_entropy_short=0.21, fire_input=1, time_since_fire_ms=142,
+fire_motion_coupling=3.41, last_stabilization_to_fire_ms=54, flick_event=1,
 ping_ms=31.7, jitter_ms=2.3, packet_loss_pct=0.08, command_age_ms=19.5
 ```
 
@@ -213,7 +220,7 @@ The system computes rolling suspicion scores and feeds them into an online chang
 
 ### Step 7. Causal Plausibility Gate
 
-If the same time window also shows server-side instability such as elevated jitter, packet loss, or command age, the suspicion score is discounted unless the cursor behavior still looks abnormally low-entropy or over-regular.
+If the same time window also shows server-side instability such as elevated jitter, packet loss, or command age, the suspicion score is discounted unless the aim behavior still looks abnormally low-entropy or over-regular.
 
 ## Final Output Of The Algorithm / Model
 
@@ -233,10 +240,15 @@ For each analyzed session, the system produces:
 The project exports split-aware evaluation metrics:
 
 - accuracy
+- balanced accuracy
 - precision
 - recall
+- specificity
 - false positive rate
 - false negative rate
+- majority-class baseline accuracy
+- PPV / NPV at observed prevalence
+- Bayes-theorem posterior cheat probabilities for lower assumed deployment prevalence
 
 Evaluation is separated into:
 
@@ -246,11 +258,11 @@ Evaluation is separated into:
 
 Latest held-out test snapshot from the current synthetic evaluation:
 
-- accuracy: `0.969`
+- accuracy: `0.980`
 - precision: `0.976`
-- recall: `0.952`
+- recall: `0.976`
 - false positive rate: `0.018`
-- false negative rate: `0.048`
+- false negative rate: `0.024`
 
 Important note:
 
@@ -261,7 +273,7 @@ Important note:
 The UI is designed to show:
 
 - when the behavioral drift began
-- what changed in the cursor dynamics
+- what changed in the aim telemetry
 - whether network or environment confounders were present
 - whether the final decision should be escalation or suppression
 
@@ -269,7 +281,7 @@ The UI is designed to show:
 
 The ML contribution is not a simple thresholding system.
 
-1. A fingerprint model learns a compact behavioral embedding from raw cursor-motion windows.
+1. A fingerprint model learns a compact behavioral embedding from raw aim-telemetry windows.
 2. The system learns player-specific baseline distributions in embedding space.
 3. A second learned layer maps anomaly evidence and confounders into a calibrated cheat probability.
 
@@ -283,4 +295,8 @@ while still keeping the online change detector and confounder gate interpretable
 
 ## Deliverable Language You Can Use In Class
 
-> Our model takes cursor motion, click timing, and server-side session signals as input, learns an individualized cursor-motor fingerprint from clean sessions, monitors new sessions for abrupt identity drift using only causal windows, and uses a confounder-aware validation gate to distinguish suspicious automation-like behavior from plausible external causes such as lag or sensitivity changes.
+> Our model takes view angles, angular motion, fire timing, and server-side session signals as input, learns an individualized aim-telemetry fingerprint from clean sessions, monitors new sessions for abrupt identity drift using only causal windows, and uses a confounder-aware validation gate to distinguish suspicious automation-like behavior from plausible external causes such as lag or sensitivity changes.
+
+Important limitation:
+
+- some real FPS engines can also expose crosshair position in world space or raycast intersection points, but that is engine-specific and not modeled in this demo; the current prototype stays in normalized yaw/pitch space

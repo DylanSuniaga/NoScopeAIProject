@@ -6,7 +6,7 @@
 
 The right story for this project is now clear:
 
-- target-agnostic cursor modeling
+- target-agnostic aim-telemetry modeling
 - causal online windows
 - player-specific motor fingerprints
 - confounder-aware validation
@@ -17,19 +17,27 @@ Main takeaway:
 
 - the project direction is now more defensible
 - the documentation now follows that framing
-- the codebase now uses cursor-only live features for the actual model pipeline
+- the codebase now uses view-angle and fire-timing features for the actual model pipeline
 
 ### 2. The detector is split-calibrated for the demo, but the evaluation is still synthetic
 
 The current prototype works end-to-end with a learned calibration layer on top of the behavioral fingerprint and causal gate. The latest exported synthetic demo snapshot is:
 
-- accuracy: `0.969`
+- accuracy: `0.980`
 - precision: `0.976`
-- recall: `0.952`
+- recall: `0.976`
 - false positive rate: `0.018`
-- false negative rate: `0.048`
+- false negative rate: `0.024`
 
 These results are useful for the class demo, but they are still synthetic holdout results.
+
+To reduce the risk of over-claiming based on raw accuracy alone, the project now also reports:
+
+- balanced accuracy
+- specificity
+- majority-class baseline accuracy
+- predictive values at the observed test prevalence
+- Bayes-theorem posterior cheat probabilities under lower assumed deployment prevalence
 
 ### 3. The earlier overfitting concern was real
 
@@ -62,7 +70,7 @@ not just simplistic target chasing.
 
 I did not find a strong open benchmark that already contains:
 
-- per-player baseline cursor telemetry
+- per-player baseline aim telemetry
 - labeled aimbot-like or triggerbot-like sessions
 - server-side ping, jitter, and packet-loss context
 - clean anti-cheat evaluation splits
@@ -71,7 +79,7 @@ That means synthetic generation and augmentation are still necessary.
 
 ### 6. Server-visible features help the demo a lot
 
-The project becomes more believable when it uses not just cursor and click behavior, but also server-style signals such as:
+The project becomes more believable when it uses not just view angles and fire-input timing, but also server-style signals such as:
 
 - ping
 - jitter
@@ -91,7 +99,7 @@ These give the causal gate something concrete to reason about.
 
 The best scientific framing is:
 
-- full cursor trajectories are **not** pure Brownian motion
+- full aim trajectories are **not** pure Brownian motion
 - intentional motion is better modeled as **smooth submovements**
 - residual jitter is stochastic but often structured
 - motor noise can be signal-dependent
@@ -99,7 +107,7 @@ The best scientific framing is:
 
 That supports the shift to:
 
-- cursor-only inputs
+- view-angle and fire-timing inputs
 - target-agnostic anomaly scoring
 - causal online windows
 
@@ -109,7 +117,7 @@ That supports the shift to:
 - per-player baselines
 - cheat modes for `aimbot`, `triggerbot`, and `macro_consistency`
 - confounder modes for `high_ping`, `sensitivity_change`, and `patch_shift`
-- cursor-only replay with fading trails and click markers
+- yaw/pitch replay with fading trails and fire-input markers
 - live timeline animation in the UI
 - replay-style visualization
 - server telemetry plots
@@ -177,7 +185,7 @@ Best use:
 Why it helps:
 
 - useful for pretraining mouse-dynamics feature extractors
-- can help regularize synthetic cursor data generation
+- can help regularize synthetic aim-telemetry generation
 
 Limitations:
 
@@ -236,7 +244,7 @@ Link:
 
 ## Related Research Pointers For The Writeup
 
-These are useful for justifying the target-agnostic cursor-motor framing:
+These are useful for justifying the target-agnostic aim-telemetry framing:
 
 - [Flash and Hogan (minimum-jerk movement)](https://pubmed.ncbi.nlm.nih.gov/4020415/)
 - [Flash and Hogan overview on PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC6565116/)
@@ -257,12 +265,12 @@ Use a hybrid strategy:
 
 That lets you say something defensible:
 
-> We used public real-user behavioral datasets where possible to inform cursor-motion distributions, then augmented them with synthetic suspicious and confounder scenarios to create a controlled anti-cheat evaluation environment.
+> We used public real-user behavioral datasets where possible to inform aim-motion distributions, then augmented them with synthetic suspicious and confounder scenarios to create a controlled anti-cheat evaluation environment.
 
 ## Most Practical Next Steps
 
 1. Refactor the live feature set so it is fully target-agnostic.
-2. Rewrite the synthetic generator around cursor-motor submovements.
+2. Rewrite the synthetic generator around view-angle submovements.
 3. Freeze three demo sessions:
    - clean
    - suspicious locking-like behavior

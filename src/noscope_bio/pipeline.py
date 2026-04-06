@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, matthews_corrcoef, precision_score, recall_score
 from sklearn.preprocessing import StandardScaler
 
 from .config import CHEAT_MODES, DEMO_FEATURE_COLUMNS, FORBIDDEN_MODEL_COLUMNS, SimulationConfig
@@ -20,6 +20,13 @@ DATA_DIR = ROOT / "data" / "generated"
 BASELINE_SESSIONS_PER_PLAYER = 5
 EVAL_REPS_PER_MODE = 3
 EVAL_SPLIT_NAMES = ("calibration_train", "validation", "test")
+BAYES_PREVALENCE_SCENARIOS = [
+    ("observed_test_prevalence", None),
+    ("moderate_deployment_10pct", 0.10),
+    ("rare_deployment_5pct", 0.05),
+    ("rare_deployment_1pct", 0.01),
+    ("very_rare_deployment_0.1pct", 0.001),
+]
 
 
 def _assert_causal_feature_contract() -> None:
@@ -179,14 +186,63 @@ def _evaluate_sessions(analysis_cache: dict[str, dict], session_meta: pd.DataFra
     y_true_arr = np.array(y_true, dtype=int)
     y_pred_arr = np.array(y_pred, dtype=int)
     tn, fp, fn, tp = confusion_matrix(y_true_arr, y_pred_arr, labels=[0, 1]).ravel()
+    prevalence = float(y_true_arr.mean())
+    sensitivity = float(recall_score(y_true_arr, y_pred_arr, zero_division=0))
+    specificity = float(tn / max(1, fp + tn))
+    balanced_accuracy = float((sensitivity + specificity) / 2.0)
+    majority_baseline_accuracy = float(max(prevalence, 1.0 - prevalence))
+    lr_positive = float(sensitivity / max(1e-9, 1.0 - specificity)) if specificity < 1.0 else float("inf")
+    lr_negative = float((1.0 - sensitivity) / max(specificity, 1e-9))
+    predicted_positive_rate = float(y_pred_arr.mean())
+    ppv = float(tp / max(1, tp + fp))
+    npv = float(tn / max(1, tn + fn))
 
     return {
         "accuracy": float(accuracy_score(y_true_arr, y_pred_arr)),
+        "balanced_accuracy": balanced_accuracy,
         "precision": float(precision_score(y_true_arr, y_pred_arr, zero_division=0)),
-        "recall": float(recall_score(y_true_arr, y_pred_arr, zero_division=0)),
+        "recall": sensitivity,
+        "specificity": specificity,
+        "f1": float(f1_score(y_true_arr, y_pred_arr, zero_division=0)),
+        "mcc": float(matthews_corrcoef(y_true_arr, y_pred_arr)) if len(np.unique(y_pred_arr)) > 1 else 0.0,
         "false_positive_rate": float(fp / max(1, fp + tn)),
         "false_negative_rate": float(fn / max(1, fn + tp)),
+        "prevalence": prevalence,
+        "predicted_positive_rate": predicted_positive_rate,
+        "majority_baseline_accuracy": majority_baseline_accuracy,
+        "ppv_at_observed_prevalence": ppv,
+        "npv_at_observed_prevalence": npv,
+        "positive_likelihood_ratio": lr_positive,
+        "negative_likelihood_ratio": lr_negative,
+        "tp": int(tp),
+        "fp": int(fp),
+        "tn": int(tn),
+        "fn": int(fn),
     }
+
+
+def _bayes_posterior_table(metrics: dict[str, float]) -> pd.DataFrame:
+    sensitivity = float(metrics["recall"])
+    specificity = float(metrics["specificity"])
+    observed_prevalence = float(metrics["prevalence"])
+    rows = []
+    for label, prevalence in BAYES_PREVALENCE_SCENARIOS:
+        prior = observed_prevalence if prevalence is None else float(prevalence)
+        positive_den = sensitivity * prior + (1.0 - specificity) * (1.0 - prior)
+        negative_den = specificity * (1.0 - prior) + (1.0 - sensitivity) * prior
+        ppv = (sensitivity * prior / positive_den) if positive_den > 0 else 0.0
+        npv = (specificity * (1.0 - prior) / negative_den) if negative_den > 0 else 0.0
+        posterior_cheat_given_negative = ((1.0 - sensitivity) * prior / negative_den) if negative_den > 0 else 0.0
+        rows.append(
+            {
+                "scenario": label,
+                "assumed_prevalence": prior,
+                "posterior_cheat_given_positive": ppv,
+                "posterior_legit_given_negative": npv,
+                "posterior_cheat_given_negative": posterior_cheat_given_negative,
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 def _session_ids_for_eval_split(session_meta: pd.DataFrame, eval_split: str) -> list[str]:
@@ -236,9 +292,11 @@ def build_demo_pipeline(seed: int = 7) -> dict:
     analyzer = _build_analyzer(model, baselines, scaler, cheat_scorer=cheat_scorer, decision_threshold=decision_threshold)
     analysis_cache = {sid: analyzer(df) for sid, df in evaluation_sessions.items()}
     split_metrics = {}
+    split_bayes = {}
     for eval_split in EVAL_SPLIT_NAMES:
         split_meta = session_meta[(session_meta["split"] == "evaluation") & (session_meta["eval_split"] == eval_split)].copy()
         split_metrics[eval_split] = _evaluate_sessions(analysis_cache, split_meta)
+        split_bayes[eval_split] = _bayes_posterior_table(split_metrics[eval_split])
     evaluation_metrics = split_metrics["test"]
 
     return {
@@ -252,6 +310,8 @@ def build_demo_pipeline(seed: int = 7) -> dict:
         "evaluation_sessions": evaluation_sessions,
         "default_session_ids": test_ids,
         "split_metrics": split_metrics,
+        "split_bayes": split_bayes,
+        "bayes_reference": split_bayes["test"],
         "analysis_cache": analysis_cache,
         "evaluation_metrics": evaluation_metrics,
         "analyzer": analyzer,
@@ -269,13 +329,14 @@ def export_demo_bundle(seed: int = 7) -> dict:
     session_meta.to_csv(DATA_DIR / "session_manifest.csv", index=False)
     pd.DataFrame([artifacts["evaluation_metrics"]]).to_csv(DATA_DIR / "evaluation_metrics.csv", index=False)
     pd.DataFrame(artifacts["split_metrics"]).T.to_csv(DATA_DIR / "split_metrics.csv", index_label="split")
+    artifacts["bayes_reference"].to_csv(DATA_DIR / "bayes_reference.csv", index=False)
     return artifacts
 
 
 def load_or_build_session_from_upload(upload) -> dict:
     raw_bytes = upload.read()
     session_df = pd.read_csv(io.BytesIO(raw_bytes))
-    required = {"session_id", "player_id", "mode", "tick", "t"} | set(DEMO_FEATURE_COLUMNS) | {"cursor_x", "cursor_y", "label_cheat"}
+    required = {"session_id", "player_id", "mode", "tick", "t"} | set(DEMO_FEATURE_COLUMNS) | {"view_yaw", "view_pitch", "label_cheat"}
     missing = sorted(required - set(session_df.columns))
     if missing:
         raise ValueError(f"Uploaded CSV is missing required columns: {missing}")

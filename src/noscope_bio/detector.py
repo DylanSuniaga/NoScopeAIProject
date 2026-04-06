@@ -7,9 +7,11 @@ import pandas as pd
 
 
 def _std_floor(column: str) -> float:
-    if column.startswith("speed"):
+    if column.startswith("angular_speed"):
         return 0.02
-    if column.startswith("acceleration") or column.startswith("jerk"):
+    if column.startswith("angular_energy"):
+        return 0.01
+    if column.startswith("angular_acceleration") or column.startswith("angular_jerk"):
         return 0.015
     if column.startswith("heading_change"):
         return 0.05
@@ -21,20 +23,28 @@ def _std_floor(column: str) -> float:
         return 35.0
     if column.startswith("burst_duration_ms"):
         return 45.0
-    if column.startswith("local_straightness"):
+    if column.startswith("view_straightness"):
         return 0.04
+    if column.startswith("stability_score"):
+        return 0.04
+    if column.startswith("yaw_reversal") or column.startswith("pitch_reversal"):
+        return 0.03
     if column.startswith("direction_entropy_short"):
         return 0.06
-    if column.startswith("roughness_score"):
+    if column.startswith("micro_correction_score"):
         return 0.04
-    if column.startswith("speed_autocorr_short"):
+    if column.startswith("angular_speed_autocorr_short"):
         return 0.05
-    if column.startswith("click_motion_coupling"):
+    if column.startswith("fire_motion_coupling"):
         return 0.18
-    if column.startswith("last_click_interval_ms"):
+    if column.startswith("last_fire_interval_ms"):
         return 28.0
-    if column.startswith("last_stabilization_delay_ms"):
+    if column.startswith("last_stabilization_to_fire_ms"):
         return 22.0
+    if column.startswith("flick_magnitude"):
+        return 0.12
+    if column.startswith("time_since_flick_ms"):
+        return 30.0
     if column.startswith("ping_ms"):
         return 5.0
     if column.startswith("jitter_ms"):
@@ -150,9 +160,14 @@ def build_window_feature_frame(
         feature_row = {
             "emb_z": emb_z,
             "straightness_rise": _positive_shift(
-                row["local_straightness_mean"],
-                baseline["summary_mean"]["local_straightness_mean"],
-                baseline["summary_std"]["local_straightness_mean"],
+                row["view_straightness_mean"],
+                baseline["summary_mean"]["view_straightness_mean"],
+                baseline["summary_std"]["view_straightness_mean"],
+            ),
+            "stability_rise": _positive_shift(
+                row["stability_score_mean"],
+                baseline["summary_mean"]["stability_score_mean"],
+                baseline["summary_std"]["stability_score_mean"],
             ),
             "entropy_drop": _negative_shift(
                 row["direction_entropy_short_mean"],
@@ -170,9 +185,9 @@ def build_window_feature_frame(
                 baseline["summary_std"]["curvature_std"],
             ),
             "roughness_drop": _negative_shift(
-                row["roughness_score_mean"],
-                baseline["summary_mean"]["roughness_score_mean"],
-                baseline["summary_std"]["roughness_score_mean"],
+                row["micro_correction_score_mean"],
+                baseline["summary_mean"]["micro_correction_score_mean"],
+                baseline["summary_std"]["micro_correction_score_mean"],
             ),
             "heading_regularity_shift": _negative_shift(
                 row["heading_change_std"],
@@ -180,14 +195,19 @@ def build_window_feature_frame(
                 baseline["summary_std"]["heading_change_std"],
             ),
             "jerk_regularity_shift": _negative_shift(
-                row["jerk_std"],
-                baseline["summary_mean"]["jerk_std"],
-                baseline["summary_std"]["jerk_std"],
+                row["angular_jerk_std"],
+                baseline["summary_mean"]["angular_jerk_std"],
+                baseline["summary_std"]["angular_jerk_std"],
             ),
             "speed_regularity_shift": _negative_shift(
-                row["speed_std"],
-                baseline["summary_mean"]["speed_std"],
-                baseline["summary_std"]["speed_std"],
+                row["angular_speed_std"],
+                baseline["summary_mean"]["angular_speed_std"],
+                baseline["summary_std"]["angular_speed_std"],
+            ),
+            "angular_energy_abs_shift": _absolute_shift(
+                row["angular_energy_mean"],
+                baseline["summary_mean"]["angular_energy_mean"],
+                baseline["summary_std"]["angular_energy_mean"],
             ),
             "burst_consistency_shift": _negative_shift(
                 row["burst_duration_ms_std"],
@@ -195,34 +215,61 @@ def build_window_feature_frame(
                 baseline["summary_std"]["burst_duration_ms_std"],
             ),
             "autocorr_rise": _positive_shift(
-                row["speed_autocorr_short_mean"],
-                baseline["summary_mean"]["speed_autocorr_short_mean"],
-                baseline["summary_std"]["speed_autocorr_short_mean"],
+                row["angular_speed_autocorr_short_mean"],
+                baseline["summary_mean"]["angular_speed_autocorr_short_mean"],
+                baseline["summary_std"]["angular_speed_autocorr_short_mean"],
             ),
-            "click_rate_shift": _positive_shift(
-                row["click_mean"],
-                baseline["summary_mean"]["click_mean"],
-                baseline["summary_std"]["click_mean"],
+            "fire_rate_shift": _positive_shift(
+                row["fire_input_mean"],
+                baseline["summary_mean"]["fire_input_mean"],
+                baseline["summary_std"]["fire_input_mean"],
             ),
-            "click_coupling_shift": _positive_shift(
-                row["click_motion_coupling_max"],
-                baseline["summary_mean"]["click_motion_coupling_max"],
-                baseline["summary_std"]["click_motion_coupling_max"],
+            "fire_coupling_shift": _positive_shift(
+                row["fire_motion_coupling_max"],
+                baseline["summary_mean"]["fire_motion_coupling_max"],
+                baseline["summary_std"]["fire_motion_coupling_max"],
             ),
-            "click_interval_regularization": _negative_shift(
-                row["last_click_interval_ms_std"],
-                baseline["summary_mean"]["last_click_interval_ms_std"],
-                baseline["summary_std"]["last_click_interval_ms_std"],
+            "fire_interval_regularization": _negative_shift(
+                row["last_fire_interval_ms_std"],
+                baseline["summary_mean"]["last_fire_interval_ms_std"],
+                baseline["summary_std"]["last_fire_interval_ms_std"],
             ),
-            "stabilization_delay_drop": _negative_shift(
-                row["last_stabilization_delay_ms_mean"],
-                baseline["summary_mean"]["last_stabilization_delay_ms_mean"],
-                baseline["summary_std"]["last_stabilization_delay_ms_mean"],
+            "stabilization_to_fire_drop": _negative_shift(
+                row["last_stabilization_to_fire_ms_mean"],
+                baseline["summary_mean"]["last_stabilization_to_fire_ms_mean"],
+                baseline["summary_std"]["last_stabilization_to_fire_ms_mean"],
             ),
-            "stabilization_delay_regularity": _negative_shift(
-                row["last_stabilization_delay_ms_std"],
-                baseline["summary_mean"]["last_stabilization_delay_ms_std"],
-                baseline["summary_std"]["last_stabilization_delay_ms_std"],
+            "stabilization_to_fire_regularity": _negative_shift(
+                row["last_stabilization_to_fire_ms_std"],
+                baseline["summary_mean"]["last_stabilization_to_fire_ms_std"],
+                baseline["summary_std"]["last_stabilization_to_fire_ms_std"],
+            ),
+            "reversal_drop": max(
+                _negative_shift(
+                    row["yaw_reversal_mean"],
+                    baseline["summary_mean"]["yaw_reversal_mean"],
+                    baseline["summary_std"]["yaw_reversal_mean"],
+                ),
+                _negative_shift(
+                    row["pitch_reversal_mean"],
+                    baseline["summary_mean"]["pitch_reversal_mean"],
+                    baseline["summary_std"]["pitch_reversal_mean"],
+                ),
+            ),
+            "flick_event_shift": _positive_shift(
+                row["flick_event_mean"],
+                baseline["summary_mean"]["flick_event_mean"],
+                baseline["summary_std"]["flick_event_mean"],
+            ),
+            "flick_magnitude_shift": _positive_shift(
+                row["flick_magnitude_max"],
+                baseline["summary_mean"]["flick_magnitude_max"],
+                baseline["summary_std"]["flick_magnitude_max"],
+            ),
+            "flick_cooldown_drop": _negative_shift(
+                row["time_since_flick_ms_mean"],
+                baseline["summary_mean"]["time_since_flick_ms_mean"],
+                baseline["summary_std"]["time_since_flick_ms_mean"],
             ),
             "motion_activity_abs_shift": _absolute_shift(
                 row["motion_active_mean"],
@@ -281,11 +328,14 @@ def build_window_feature_frame(
         }
         feature_row["automation_signature"] = max(
             feature_row["straightness_rise"],
+            feature_row["stability_rise"],
             feature_row["entropy_drop"],
             feature_row["curvature_drop"],
-            feature_row["click_coupling_shift"],
-            feature_row["stabilization_delay_drop"],
-            feature_row["click_interval_regularization"],
+            feature_row["fire_coupling_shift"],
+            feature_row["stabilization_to_fire_drop"],
+            feature_row["fire_interval_regularization"],
+            feature_row["flick_magnitude_shift"],
+            feature_row["reversal_drop"],
         )
         feature_row["movement_signature"] = max(
             feature_row["speed_regularity_shift"],
@@ -293,6 +343,8 @@ def build_window_feature_frame(
             feature_row["heading_regularity_shift"],
             feature_row["burst_consistency_shift"],
             feature_row["autocorr_rise"],
+            feature_row["flick_event_shift"],
+            feature_row["flick_cooldown_drop"],
         )
         feature_row["network_stress"] = max(
             feature_row["ping_change"],
@@ -311,6 +363,7 @@ def fit_cheat_scorer(feature_frame: pd.DataFrame) -> CheatScorer:
     feature_names = [
         "emb_z",
         "straightness_rise",
+        "stability_rise",
         "entropy_drop",
         "curvature_drop",
         "curvature_regularity_shift",
@@ -318,13 +371,18 @@ def fit_cheat_scorer(feature_frame: pd.DataFrame) -> CheatScorer:
         "heading_regularity_shift",
         "jerk_regularity_shift",
         "speed_regularity_shift",
+        "angular_energy_abs_shift",
         "burst_consistency_shift",
         "autocorr_rise",
-        "click_rate_shift",
-        "click_coupling_shift",
-        "click_interval_regularization",
-        "stabilization_delay_drop",
-        "stabilization_delay_regularity",
+        "fire_rate_shift",
+        "fire_coupling_shift",
+        "fire_interval_regularization",
+        "stabilization_to_fire_drop",
+        "stabilization_to_fire_regularity",
+        "reversal_drop",
+        "flick_event_shift",
+        "flick_magnitude_shift",
+        "flick_cooldown_drop",
         "motion_activity_abs_shift",
         "pause_shift",
         "ping_change",
@@ -424,12 +482,15 @@ def analyze_session_windows(
                     -2.5
                     + 0.45 * feat_row["emb_z"]
                     + 0.90 * feat_row["straightness_rise"]
+                    + 0.70 * feat_row["stability_rise"]
                     + 1.15 * feat_row["entropy_drop"]
                     + 0.85 * feat_row["curvature_drop"]
                     + 0.70 * feat_row["roughness_drop"]
-                    + 0.65 * feat_row["click_coupling_shift"]
-                    + 0.55 * feat_row["click_interval_regularization"]
-                    + 0.55 * feat_row["stabilization_delay_drop"]
+                    + 0.45 * feat_row["reversal_drop"]
+                    + 0.65 * feat_row["fire_coupling_shift"]
+                    + 0.55 * feat_row["fire_interval_regularization"]
+                    + 0.55 * feat_row["stabilization_to_fire_drop"]
+                    + 0.45 * feat_row["flick_magnitude_shift"]
                     + 0.45 * feat_row["autocorr_rise"]
                 )
             )
@@ -449,12 +510,12 @@ def analyze_session_windows(
         if feat_row["sensitivity_delta"] > 0.18 and feat_row["automation_signature"] < 1.9:
             gate_factor *= 0.18
             gate_reasons.append(
-                "A large sensitivity change can explain broad cursor-dynamics drift, so the gate reduced the score when no strong locking or click-timing signature appeared."
+                "A large sensitivity change can explain broad view-angle drift, so the gate reduced the score when no strong locking or fire-timing signature appeared."
             )
         if mode == "patch_shift" and feat_row["automation_signature"] < 1.8:
             gate_factor *= 0.22
             gate_reasons.append(
-                "Patch or environment shift present, so broad movement drift was treated as less suspicious unless the cursor behavior also became abnormally low-entropy."
+                "Patch or environment shift present, so broad aim-motion drift was treated as less suspicious unless the view-angle behavior also became abnormally low-entropy."
             )
         if feat_row["network_stress"] > 2.4 and feat_row["automation_signature"] < 1.5:
             gate_factor *= 0.45
@@ -505,18 +566,24 @@ def analyze_session_windows(
     verdict = str(final_row["running_verdict"])
     explanations = []
     human_names = {
-        "local_straightness_mean": "Cursor paths became much straighter than this player's baseline.",
-        "direction_entropy_short_mean": "Movement direction entropy collapsed relative to the player's normal cursor behavior.",
-        "curvature_mean": "Cursor curvature dropped, making the motion look unusually clean and direct.",
-        "roughness_score_mean": "Micro-corrections became much smoother and less noisy than usual.",
-        "angular_velocity_mean": "Cursor turning behavior shifted noticeably relative to the player's baseline.",
-        "click_mean": "Click frequency changed materially relative to this player's usual rhythm.",
-        "click_motion_coupling_mean": "Clicks became more tightly linked to cursor stabilization than usual.",
-        "speed_autocorr_short_mean": "Cursor speed became more periodic or mechanically regular.",
-        "speed_autocorr_short_std": "Cursor tempo variability changed sharply relative to the player's baseline.",
-        "click_motion_coupling_max": "Clicks became tightly coupled to abrupt cursor stabilization.",
-        "last_click_interval_ms_std": "Click intervals became much more consistent than this player's normal rhythm.",
-        "last_stabilization_delay_ms_mean": "The delay between movement stabilization and clicking dropped sharply.",
+        "view_straightness_mean": "View-angle paths became much straighter than this player's baseline.",
+        "stability_score_mean": "The aim stream stabilized more cleanly than this player's normal behavior.",
+        "direction_entropy_short_mean": "Movement direction entropy collapsed relative to the player's normal aim behavior.",
+        "curvature_mean": "View-angle curvature dropped, making the aim motion look unusually clean and direct.",
+        "micro_correction_score_mean": "Micro-corrections became much smoother and less noisy than usual.",
+        "angular_velocity_mean": "View-angle turning behavior shifted noticeably relative to the player's baseline.",
+        "yaw_reversal_mean": "Yaw-direction reversals dropped, suggesting fewer human-like micro-corrections.",
+        "pitch_reversal_mean": "Pitch-direction reversals dropped, suggesting fewer human-like micro-corrections.",
+        "fire_input_mean": "Fire-input frequency changed materially relative to this player's usual rhythm.",
+        "fire_motion_coupling_mean": "Fire inputs became more tightly linked to aim stabilization than usual.",
+        "angular_speed_autocorr_short_mean": "Angular speed became more periodic or mechanically regular.",
+        "angular_speed_autocorr_short_std": "Angular-speed variability changed sharply relative to the player's baseline.",
+        "fire_motion_coupling_max": "Fire inputs became tightly coupled to abrupt aim stabilization.",
+        "last_fire_interval_ms_std": "Fire intervals became much more consistent than this player's normal rhythm.",
+        "last_stabilization_to_fire_ms_mean": "The delay between aim stabilization and firing dropped sharply.",
+        "flick_event_mean": "Rapid flick-like view-angle events appeared more often than usual.",
+        "flick_magnitude_max": "The session showed unusually large high-speed flick events.",
+        "time_since_flick_ms_mean": "The timing between flick-like events compressed relative to the player's baseline.",
         "burst_duration_ms_std": "Movement bursts became unusually uniform in duration.",
         "jitter_ms_mean": "Network jitter changed materially, which may explain degraded control quality.",
         "packet_loss_pct_mean": "Packet loss increased relative to the player's normal network conditions.",
@@ -528,7 +595,7 @@ def analyze_session_windows(
         explanations.append(message)
 
     if verdict == "Likely Legit" and not gate_reasons:
-        gate_reasons.append("No strong confounder was needed because the session stayed close to the player's normal cursor-motor fingerprint.")
+        gate_reasons.append("No strong confounder was needed because the session stayed close to the player's normal aim-telemetry fingerprint.")
 
     deduped_reasons = []
     seen = set()
@@ -538,7 +605,7 @@ def analyze_session_windows(
             seen.add(reason)
 
     if verdict == "Likely Legit":
-        explanations = ["Overall behavior stayed within the player's acceptable cursor-motor range after causal validation."]
+        explanations = ["Overall behavior stayed within the player's acceptable aim-telemetry range after causal validation."]
         if deduped_reasons:
             explanations.append("The observed drift was treated as explainable noise or an external confounder, not a sustained automation signature.")
 

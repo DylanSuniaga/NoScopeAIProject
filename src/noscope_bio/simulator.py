@@ -165,6 +165,7 @@ def simulate_session(
     pending_click_tick: int | None = None
     pending_stabilization_tick: int | None = None
     lock_event_until = -1
+    time_since_flick_ms = 10_000.0
 
     position_history: list[np.ndarray] = [cursor.copy()]
     heading_history: list[float] = []
@@ -344,8 +345,11 @@ def simulate_session(
         heading_change = float(abs(_angle_diff(heading, prev_heading)))
         angular_velocity = float(heading_change / config.dt)
         curvature = float(heading_change / max(speed, 1e-4))
+        angular_energy = float(speed * speed)
         motion_active = float(speed > config.motion_threshold)
         pause_ms = 0.0 if motion_active else pause_ms + config.dt * 1000.0
+        yaw_reversal = int(abs(delta[0]) > 0.01 and abs(prev_delta[0]) > 0.01 and np.sign(delta[0]) != np.sign(prev_delta[0]))
+        pitch_reversal = int(abs(delta[1]) > 0.01 and abs(prev_delta[1]) > 0.01 and np.sign(delta[1]) != np.sign(prev_delta[1]))
 
         position_history.append(cursor.copy())
         if len(position_history) > config.straightness_window:
@@ -367,6 +371,14 @@ def simulate_session(
             np.std(heading_change_history) + 0.35 * np.std(np.diff(speed_history)) if len(speed_history) > 2 else 0.1
         )
         speed_autocorr_short = _lag1_autocorr(speed_history)
+        stability_score = float(
+            np.clip(local_straightness * (1.0 - min(speed / 0.09, 1.0)) * (1.0 - min(roughness_score / 1.2, 1.0)), 0.0, 1.0)
+        )
+        yaw_angle = float(cursor[0] * np.pi)
+        pitch_angle = float(cursor[1] * (np.pi / 3.0))
+        aim_vector_x = float(np.cos(pitch_angle) * np.cos(yaw_angle))
+        aim_vector_y = float(np.sin(pitch_angle))
+        aim_vector_z = float(np.cos(pitch_angle) * np.sin(yaw_angle))
 
         recent_peak_speed = float(max(speed_history) if speed_history else speed)
         stabilization_signal = max(0.0, recent_peak_speed - speed) * (0.65 + 0.35 * local_straightness) * (1.35 - direction_entropy_short)
@@ -391,6 +403,12 @@ def simulate_session(
         if mode == "aimbot" and active and lock_like_active:
             click_motion_coupling = float(min(6.0, click_motion_coupling * 1.03 + 0.02))
 
+        flick_magnitude = float(heading_change * speed * 24.0)
+        flick_event = int(speed > 0.055 and heading_change > 0.32)
+        if flick_event:
+            time_since_flick_ms = 0.0
+        else:
+            time_since_flick_ms += config.dt * 1000.0
         packet_interarrival_ms = max(4.0, 1000.0 / max(command_rate_hz, 1.0) + rng.normal(0.0, 0.35 + jitter_ms * 0.12))
         input_burstiness = max(0.0, abs(acceleration) * 1.8 + abs(jerk) * 0.95 + 0.25 * click + abs(rng.normal(0.0, 0.04)))
         server_correction_magnitude = max(
@@ -427,15 +445,17 @@ def simulate_session(
                 "mode": mode,
                 "tick": tick,
                 "t": t,
-                "cursor_x": float(cursor[0]),
-                "cursor_y": float(cursor[1]),
-                "dx": float(delta[0]),
-                "dy": float(delta[1]),
-                "speed": speed,
-                "acceleration": acceleration,
-                "jerk": jerk,
-                "heading_sin": float(np.sin(heading)),
-                "heading_cos": float(np.cos(heading)),
+                "view_yaw": float(cursor[0]),
+                "view_pitch": float(cursor[1]),
+                "yaw_delta": float(delta[0]),
+                "pitch_delta": float(delta[1]),
+                "angular_speed": speed,
+                "angular_energy": angular_energy,
+                "angular_acceleration": acceleration,
+                "angular_jerk": jerk,
+                "aim_vector_x": aim_vector_x,
+                "aim_vector_y": aim_vector_y,
+                "aim_vector_z": aim_vector_z,
                 "heading_change": heading_change,
                 "angular_velocity": angular_velocity,
                 "curvature": curvature,
@@ -443,15 +463,21 @@ def simulate_session(
                 "pause_ms": float(pause_ms),
                 "burst_progress": current_primary_progress,
                 "burst_duration_ms": current_burst_duration_ms,
-                "local_straightness": local_straightness,
+                "view_straightness": local_straightness,
+                "stability_score": stability_score,
+                "yaw_reversal": yaw_reversal,
+                "pitch_reversal": pitch_reversal,
                 "direction_entropy_short": direction_entropy_short,
-                "roughness_score": roughness_score,
-                "speed_autocorr_short": speed_autocorr_short,
-                "click": click,
-                "time_since_click_ms": float(time_since_click_ms),
-                "click_motion_coupling": float(click_motion_coupling),
-                "last_click_interval_ms": float(last_click_interval_ms),
-                "last_stabilization_delay_ms": float(last_stabilization_delay_ms),
+                "micro_correction_score": roughness_score,
+                "angular_speed_autocorr_short": speed_autocorr_short,
+                "fire_input": click,
+                "time_since_fire_ms": float(time_since_click_ms),
+                "fire_motion_coupling": float(click_motion_coupling),
+                "last_fire_interval_ms": float(last_click_interval_ms),
+                "last_stabilization_to_fire_ms": float(last_stabilization_delay_ms),
+                "flick_event": flick_event,
+                "flick_magnitude": flick_magnitude,
+                "time_since_flick_ms": float(time_since_flick_ms),
                 "ping_ms": float(ping_ms),
                 "jitter_ms": float(jitter_ms),
                 "packet_loss_pct": float(packet_loss_pct),
