@@ -1,16 +1,38 @@
 # Section 2: Overall Architecture, Workflow, and Main Functional Components
 
+## Addendum: Two Data Modes
+
+The current project has two aligned pipelines:
+
+1. a **synthetic personalized anti-cheat demo**
+2. a **real CSGO archive benchmark**
+
+The real archive is stored under `/real_data/archive` as numpy tensors with shape `(players, 30, 192, 5)` using:
+
+- `AttackerDeltaYaw`
+- `AttackerDeltaPitch`
+- `CrosshairToVictimYaw`
+- `CrosshairToVictimPitch`
+- `Firing`
+
+The Streamlit app exposes these as separate tabs so the class demo can show both:
+
+- a polished synthetic end-to-end anti-cheat story
+- a harder real-data benchmark using held-out CSGO players
+
 ## System Overview
 
-`NoScope-Bio` is a personalized behavioral anti-cheat prototype built around **target-agnostic aim telemetry modeling**.
+`NoScope-Bio` is a behavioral anti-cheat prototype built around **causal aim-telemetry modeling**.
 
-Instead of assuming we know where an enemy target was, the system uses only:
+The synthetic path is target-agnostic and uses only:
 
 - view angles such as yaw and pitch
 - angular motion and derived aim vectors
 - fire-input timing
 - timestamps
 - server-side telemetry
+
+The CSGO archive path uses the real archive's target-relative engagement fields in addition to angular motion because that information is explicitly present in the benchmark.
 
 The goal is to learn each player's normal motor signature and then detect statistically abnormal shifts in that signature over time.
 
@@ -19,7 +41,7 @@ The system is organized as a six-stage pipeline:
 1. session telemetry input
 2. feature preprocessing and online segmentation
 3. behavioral fingerprint encoding
-4. personalized baseline comparison
+4. baseline comparison or session-level classification
 5. online change detection
 6. causal-style validation and moderator-facing output
 
@@ -28,7 +50,7 @@ flowchart LR
     A["Session Telemetry CSV"] --> B["Feature Preprocessing"]
     B --> C["Online Segmentation / Windowing"]
     C --> D["Causal Sequence Encoder"]
-    D --> E["Player Baseline Comparison"]
+    D --> E["Player Baseline Comparison / Session Feature Aggregation"]
     E --> F["Online Change Detection"]
     F --> G["Causal Plausibility Gate"]
     G --> H["Moderator Output + Timeline + Metrics"]
@@ -83,7 +105,11 @@ Online segmentation is based on movement structure such as:
 
 The main ML component is a causal temporal fingerprint model.
 
-It is trained on clean telemetry windows to predict player identity. In the current prototype, this is implemented with a lightweight fingerprint network over flattened causal windows. The hidden representation of that model becomes the player's behavioral embedding.
+In the synthetic demo, it is trained on clean telemetry windows to predict player identity.
+
+In the CSGO archive benchmark, it is trained on causal engagement windows to distinguish legit and cheater-like structure in real CSGO aim traces.
+
+In the current prototype, this is implemented with a lightweight fingerprint network over flattened causal windows. The hidden representation of that model becomes the behavioral embedding used by the second-stage scorer and by the CSGO session-level feature table.
 
 This is the main non-trivial ML contribution because it performs:
 
@@ -91,9 +117,23 @@ This is the main non-trivial ML contribution because it performs:
 - player-specific behavioral fingerprinting
 - personalized anomaly detection support
 
-### 4. Personalized Baseline Comparison
+### 4. Baseline Comparison Or Session-Level Classification
 
-For each player, the system stores baseline embedding statistics and clean feature distributions. Each new session window is compared against that player's historical normal behavior.
+For the synthetic demo, the system stores per-player baseline embedding statistics and clean feature distributions.
+
+For the CSGO archive benchmark, the system stores a legit-population baseline over held-out training players, because the archive does not provide clean historical baselines for the cheater cohort.
+
+The final CSGO verdict shown in Streamlit comes from a saved **session-level logistic regression** model over aggregated causal window features such as:
+
+- mean and max cheat probability
+- encoder signal strength
+- target-error-drop summaries
+- lock-strength rises
+- snap-power rises
+- fire-alignment and fire-stability coupling
+- entropy and curvature reductions
+
+This logistic model was chosen as the deployed CSGO classifier because it had the best balanced-accuracy result in the offline model sweep.
 
 ### 5. Online Shift Detector
 
@@ -122,11 +162,14 @@ Before labeling a session as suspicious, the system checks whether the observed 
 
 The Streamlit UI supports:
 
-- selecting or uploading a session
+- a synthetic demo tab and a CSGO archive tab
+- selecting or uploading a synthetic session
+- selecting a held-out CSGO engagement sample
 - viewing a suspicion timeline
 - viewing a yaw/pitch replay
 - running a live timeline animation
-- viewing server telemetry over time
+- viewing server telemetry over time for synthetic sessions
+- viewing engagement telemetry over time for CSGO sessions
 - viewing explanation text for why the session was flagged or suppressed
 
 ## Input To The Algorithm / Model
@@ -210,9 +253,11 @@ The time series is split into overlapping trailing windows. Each window contains
 
 Each window is passed through the fingerprint encoder to produce an embedding vector representing the player's local behavioral identity.
 
-### Step 5. Baseline Comparison
+### Step 5. Baseline Comparison Or Session Classification
 
 The current embedding and summary features are compared against that player's stored baseline statistics.
+
+For the CSGO benchmark, these window-level summaries are also aggregated into a session feature vector and passed into the saved logistic regression classifier that produces the official final session verdict in the app.
 
 ### Step 6. Online Change Detection
 
@@ -229,7 +274,8 @@ If the same time window also shows server-side instability such as elevated jitt
 For each analyzed session, the system produces:
 
 - session verdict: `Suspicious` or `Likely Legit`
-- peak suspicion score
+- session-level suspiciousness probability
+- peak suspicion score from the causal window evidence stream
 - change-point timestamp
 - per-window suspicion timeline
 - top shifted features vs baseline
@@ -268,6 +314,18 @@ Important note:
 
 - these values are from the current synthetic evaluation environment and should be presented as demo results, not as proof of real-world deployment readiness
 
+Current held-out test snapshot for the deployed CSGO session model:
+
+- model: `baseline_logistic`
+- accuracy: `0.7119`
+- balanced accuracy: `0.7107`
+- precision: `0.5792`
+- recall: `0.7067`
+- F1: `0.6366`
+- MCC: `0.4073`
+
+This is the official model used for the CSGO tab. The causal timeline remains in the interface as synchronized evidence, not as the final CSGO session classifier.
+
 ### Moderator-Facing Output
 
 The UI is designed to show:
@@ -284,6 +342,8 @@ The ML contribution is not a simple thresholding system.
 1. A fingerprint model learns a compact behavioral embedding from raw aim-telemetry windows.
 2. The system learns player-specific baseline distributions in embedding space.
 3. A second learned layer maps anomaly evidence and confounders into a calibrated cheat probability.
+
+For the real CSGO tab, the deployed final classifier is a saved session-level logistic regression model over aggregated causal window features, because that model outperformed the notebook LSTM sweep on balanced accuracy.
 
 This means the project combines:
 

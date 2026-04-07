@@ -1,5 +1,51 @@
 # NoScope-Bio Demo Plan
 
+## Real CSGO Addendum
+
+The project now also includes a **real-data benchmark mode** using a CSGO archive under `/real_data/archive`.
+
+Archive shape:
+
+- clean players: `10,000`
+- cheater players: `2,000`
+- tensor shape: `(players, 30, 192, 5)`
+- `30` engagements per player
+- `192` ticks per engagement
+- `5` raw features per tick:
+  - `AttackerDeltaYaw`
+  - `AttackerDeltaPitch`
+  - `CrosshairToVictimYaw`
+  - `CrosshairToVictimPitch`
+  - `Firing`
+
+This addendum changes the project story in an important way:
+
+- the **synthetic tab** remains the polished personalized demo
+- the **CSGO tab** becomes a real archive benchmark using player-level train/validation/test splits and a saved session-level logistic regression classifier
+
+For the real archive, the pipeline adapts the same high-level architecture but uses the archive's target-relative engagement fields to engineer:
+
+- target error and target-error improvement
+- on-target time and lock-like dwell time
+- angular speed, acceleration, and jerk
+- direction entropy and micro-correction features
+- snap-like windows
+- fire-on-target and fire-motion coupling
+
+Because the archive does not give each cheater a clean historical baseline, the CSGO benchmark uses a **legit-population baseline** plus a learned engagement encoder, while the synthetic demo still uses **player-specific baselines**.
+
+The deployed CSGO model choice is now clear:
+
+- keep the causal window pipeline for timeline evidence and replay alignment
+- use the saved **baseline logistic regression** model for the final CSGO session verdict
+
+Why logistic regression won:
+
+- best balanced accuracy in the offline comparison: `0.7107`
+- best recall among the strongest overall models: `0.7067`
+- strongest deployment-ready MCC in the selected path: `0.4073`
+- cheaper and more stable to run than the notebook LSTM sweep on this machine
+
 ## Project Direction
 
 The strongest version of this project is a polished **behavioral anti-cheat lab** built around **target-agnostic aim telemetry signatures**.

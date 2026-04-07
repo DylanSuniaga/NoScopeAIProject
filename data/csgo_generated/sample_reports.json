@@ -1,0 +1,812 @@
+{
+  "C00798_E16": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9494338386739207,
+    "top_feature_deltas": [
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 5.209079771980874,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_rise",
+        "delta": 4.316608953145544,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 4.003113206923687,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 3.6255132211585352,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.1190140826118458,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 1.8961487138720332,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The crosshair stayed tightly aligned with the victim more often than normal."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 12,
+    "change_detected_count": 20
+  },
+  "C00798_E15": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9436992575230876,
+    "top_feature_deltas": [
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 5.2437515907383965,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_rise",
+        "delta": 5.070052182430549,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 3.9544126387661125,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 3.379311441918598,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_on_target_shift",
+        "delta": 2.318522945972631,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 2.1994654517077628,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 10,
+    "change_detected_count": 19
+  },
+  "C00798_E14": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9044259360816769,
+    "top_feature_deltas": [
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 3.280354528481598,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 2.14062943632147,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.119513771037589,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_rise",
+        "delta": 2.056279265290528,
+        "direction": "up"
+      },
+      {
+        "feature": "aim_efficiency_rise",
+        "delta": 1.5795653560621166,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 0.9943178802979181,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The engagement windows looked more like cheater-labeled patterns than legit windows.",
+      "Short lock-like aim segments increased relative to legit behavior."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 10,
+    "change_detected_count": 15
+  },
+  "C00015_E29": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8995602247655435,
+    "top_feature_deltas": [
+      {
+        "feature": "fire_on_target_shift",
+        "delta": 2.318522945972631,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.0424716730205112,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 1.703871899573453,
+        "direction": "up"
+      },
+      {
+        "feature": "aim_efficiency_rise",
+        "delta": 1.5152262766317597,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_rise",
+        "delta": 1.3028360360055227,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 1.2742435699906003,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Shots were fired while already aligned more often than expected.",
+      "The engagement windows looked more like cheater-labeled patterns than legit windows.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "The engagement corrected aim error with unusually efficient motion."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 2,
+    "change_detected_count": 17
+  },
+  "C00103_E06": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8983239866050642,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_strength_rise",
+        "delta": 3.419309361101218,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 3.162965745803598,
+        "direction": "up"
+      },
+      {
+        "feature": "snap_rise",
+        "delta": 2.14095362586884,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.1192949804373136,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 1.9810161331206495,
+        "direction": "up"
+      },
+      {
+        "feature": "micro_to_speed_drop",
+        "delta": 1.0210023107248773,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "Firing became unusually synchronized with stabilized aim.",
+      "Rapid error-collapsing snap events appeared more often than normal.",
+      "The engagement windows looked more like cheater-labeled patterns than legit windows."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 2,
+    "change_detected_count": 2
+  },
+  "C00103_E27": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8823660600928371,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 11.851041245995596,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 8.559004485272192,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 4.148905558037162,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_on_target_shift",
+        "delta": 4.14088859326457,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_alignment_strength_rise",
+        "delta": 3.5280482661452055,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 2.779180778473199,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "Shots were fired while already aligned more often than expected."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 7,
+    "change_detected_count": 18
+  },
+  "C00103_E26": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8801679658569375,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 8.08382509957057,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 6.914507397234306,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_on_target_shift",
+        "delta": 3.2297057696186005,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_alignment_strength_rise",
+        "delta": 2.7508973782555532,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 2.184526767553528,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.119367910637405,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "Shots were fired while already aligned more often than expected.",
+      "Fire inputs happened at stronger victim-alignment levels than the legit baseline."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 5,
+    "change_detected_count": 12
+  },
+  "C00103_E12": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8799023785749353,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 4.316608953145544,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 3.296613803550958,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 3.133223349483405,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_on_target_shift",
+        "delta": 2.318522945972631,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.0732945064903636,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 1.9203278193664295,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Shots were fired while already aligned more often than expected."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 4,
+    "change_detected_count": 14
+  },
+  "C00015_E27": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8753238898970189,
+    "top_feature_deltas": [
+      {
+        "feature": "encoder_signal",
+        "delta": 1.8751211738765048,
+        "direction": "up"
+      },
+      {
+        "feature": "aim_efficiency_rise",
+        "delta": 1.7085306716782234,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 1.592378910021489,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_rise",
+        "delta": 1.3028360360055227,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 1.030854125314947,
+        "direction": "up"
+      },
+      {
+        "feature": "target_error_drop",
+        "delta": 0.6595234139483197,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "The engagement windows looked more like cheater-labeled patterns than legit windows.",
+      "The engagement corrected aim error with unusually efficient motion.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Short lock-like aim segments increased relative to legit behavior."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 2,
+    "change_detected_count": 16
+  },
+  "L05808_E04": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9376510130548493,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 5.823495411715554,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 5.620788577152438,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 5.006124998445115,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 2.967714385943381,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.1195467394842056,
+        "direction": "up"
+      },
+      {
+        "feature": "entropy_drop",
+        "delta": 1.506686410045563,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The crosshair stayed tightly aligned with the victim more often than normal."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 2,
+    "change_detected_count": 17
+  },
+  "L05808_E03": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9360152087948967,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 5.823495411715554,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 5.708319663766525,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 5.006124998445115,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 2.967714385943381,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.119546073454981,
+        "direction": "up"
+      },
+      {
+        "feature": "entropy_drop",
+        "delta": 1.4983654594822569,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The crosshair stayed tightly aligned with the victim more often than normal."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 3,
+    "change_detected_count": 16
+  },
+  "L07169_E15": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9324033957385931,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 3.5631657238605388,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 2.5616531890536773,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 2.4616125395317345,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 2.3099155507282267,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.118729688132949,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 1.502732116343342,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Firing became unusually synchronized with stabilized aim.",
+      "The crosshair stayed tightly aligned with the victim more often than normal."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 4,
+    "change_detected_count": 17
+  },
+  "L02774_E02": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9322337093114111,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 2.056279265290528,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.015398917099672,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 1.6521167155130723,
+        "direction": "up"
+      },
+      {
+        "feature": "entropy_drop",
+        "delta": 1.203827689869912,
+        "direction": "up"
+      },
+      {
+        "feature": "target_error_drop",
+        "delta": 0.7680828811121516,
+        "direction": "up"
+      },
+      {
+        "feature": "error_speed_ratio_drop",
+        "delta": 0.6785200517490564,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The engagement windows looked more like cheater-labeled patterns than legit windows.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "Aim direction entropy collapsed relative to the legit baseline."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 6,
+    "change_detected_count": 20
+  },
+  "L05808_E06": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9287974571316728,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 5.823495411715554,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 5.411992208923755,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 5.006124998445115,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 2.967714385943381,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.0983836608730893,
+        "direction": "up"
+      },
+      {
+        "feature": "entropy_drop",
+        "delta": 1.5285025492931814,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The crosshair stayed tightly aligned with the victim more often than normal."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 1,
+    "change_detected_count": 19
+  },
+  "L05808_E05": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9232630520019482,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 5.823495411715554,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 5.290252569445142,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 5.006124998445115,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 2.967714385943381,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.0620377800583847,
+        "direction": "up"
+      },
+      {
+        "feature": "entropy_drop",
+        "delta": 1.4583751765378234,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The aim settled into low-motion stable states faster than the legit baseline.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The crosshair stayed tightly aligned with the victim more often than normal."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 3,
+    "change_detected_count": 19
+  },
+  "L06116_E00": {
+    "verdict": "Suspicious",
+    "peak_score": 0.9157267811928055,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 5.823495411715554,
+        "direction": "up"
+      },
+      {
+        "feature": "aim_efficiency_rise",
+        "delta": 2.847175538102042,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 2.638814968335804,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.10591645140312,
+        "direction": "up"
+      },
+      {
+        "feature": "entropy_drop",
+        "delta": 1.125666579748288,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 0.8740838865576933,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The engagement corrected aim error with unusually efficient motion.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "The engagement windows looked more like cheater-labeled patterns than legit windows."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 2,
+    "change_detected_count": 10
+  },
+  "L06116_E01": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8987009807254209,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 8.08382509957057,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 7.901205650057038,
+        "direction": "up"
+      },
+      {
+        "feature": "lock_strength_rise",
+        "delta": 4.395501700748016,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 2.3579035083691244,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.082500029417934,
+        "direction": "up"
+      },
+      {
+        "feature": "fire_coupling_shift",
+        "delta": 2.018333532233539,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "Lock-like moments became stronger by combining tight alignment with stable aim.",
+      "The aim settled into low-motion stable states faster than the legit baseline."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 6,
+    "change_detected_count": 12
+  },
+  "L02774_E01": {
+    "verdict": "Suspicious",
+    "peak_score": 0.8939611816818381,
+    "top_feature_deltas": [
+      {
+        "feature": "lock_rise",
+        "delta": 5.823495411715554,
+        "direction": "up"
+      },
+      {
+        "feature": "tight_on_target_rise",
+        "delta": 3.296613803550958,
+        "direction": "up"
+      },
+      {
+        "feature": "encoder_signal",
+        "delta": 2.119406540332431,
+        "direction": "up"
+      },
+      {
+        "feature": "settling_ratio_rise",
+        "delta": 0.8593281626393687,
+        "direction": "up"
+      },
+      {
+        "feature": "target_error_drop",
+        "delta": 0.8050212221594523,
+        "direction": "up"
+      },
+      {
+        "feature": "error_speed_ratio_drop",
+        "delta": 0.7007594287667624,
+        "direction": "up"
+      }
+    ],
+    "explanations": [
+      "Short lock-like aim segments increased relative to legit behavior.",
+      "The crosshair stayed tightly aligned with the victim more often than normal.",
+      "The engagement windows looked more like cheater-labeled patterns than legit windows.",
+      "The aim settled into low-motion stable states faster than the legit baseline."
+    ],
+    "gate_reasons": [],
+    "high_window_count": 2,
+    "change_detected_count": 20
+  }
+}

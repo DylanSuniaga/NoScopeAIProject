@@ -1,0 +1,20 @@
+# Local Python/cache noise
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.DS_Store
+
+# Real CSGO archive / live data
+real_data/archive/
+real_data/**/*.npy
+real_data/**/*.npz
+
+# Large generated benchmark artifacts
+data/csgo_generated/window_features.csv
+data/csgo_generated/classifier_windows.csv
+
+# Nested Python cache noise
+**/__pycache__/
+
+# Optional local artifacts
+.streamlit/secrets.toml

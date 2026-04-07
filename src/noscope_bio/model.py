@@ -21,6 +21,15 @@ class FingerprintNet:
             activations = np.maximum(activations, 0.0)
         return activations
 
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        flat_X = self._flatten(X)
+        probs = self.classifier.predict_proba(flat_X)
+        if probs.ndim == 1:
+            return probs
+        if probs.shape[1] == 1:
+            return probs[:, 0]
+        return probs[:, -1]
+
 
 def train_fingerprint_model(
     X: np.ndarray,
@@ -56,3 +65,11 @@ def embed_windows(model: FingerprintNet, X: np.ndarray, batch_size: int = 256) -
         batch = X[idx : idx + batch_size]
         embeddings.append(model.embed(batch))
     return np.concatenate(embeddings, axis=0)
+
+
+def predict_window_proba(model: FingerprintNet, X: np.ndarray, batch_size: int = 256) -> np.ndarray:
+    probabilities = []
+    for idx in range(0, len(X), batch_size):
+        batch = X[idx : idx + batch_size]
+        probabilities.append(model.predict_proba(batch))
+    return np.concatenate(probabilities, axis=0)
