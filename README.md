@@ -52,6 +52,195 @@ So the project treats behavior as:
 
 That affects both the synthetic generator and the feature engineering.
 
+## Mathematical Intuition
+
+The project treats observed aim telemetry as:
+
+\[
+x_t = s_t + \epsilon_t
+\]
+
+where:
+
+- \(x_t\) is the observed signal at time \(t\)
+- \(s_t\) is the smooth intentional control component
+- \(\epsilon_t\) is the stochastic residual variation
+
+The goal is not to claim that human motion is perfectly smooth or perfectly random. The goal is to separate:
+
+- the structured part of aiming behavior
+- the human irregularity left over on top of that structure
+
+### Smooth / structured features
+
+If yaw is \(\theta_t\) and pitch is \(\phi_t\), then a simple discrete angular speed is:
+
+\[
+v_t = \sqrt{(\Delta \theta_t)^2 + (\Delta \phi_t)^2}
+\]
+
+Angular acceleration is the first difference of speed:
+
+\[
+a_t = v_t - v_{t-1}
+\]
+
+Angular jerk is the first difference of acceleration:
+
+\[
+j_t = a_t - a_{t-1}
+\]
+
+A simple direction variable is:
+
+\[
+\alpha_t = \operatorname{atan2}(\Delta \phi_t, \Delta \theta_t)
+\]
+
+and a discrete curvature proxy is:
+
+\[
+\kappa_t \approx |\alpha_t - \alpha_{t-1}|
+\]
+
+Straightness over a short window is:
+
+\[
+\text{straightness} =
+\frac{\text{net displacement}}{\text{total path length}}
+\]
+
+or more explicitly:
+
+\[
+\frac{\sqrt{(\theta_T-\theta_1)^2 + (\phi_T-\phi_1)^2}}
+{\sum_{t=2}^{T}\sqrt{(\Delta \theta_t)^2 + (\Delta \phi_t)^2}}
+\]
+
+Settling can be represented as the fraction of samples in a window whose speed is below a small threshold:
+
+\[
+\text{settling ratio} = \frac{1}{T}\sum_{t=1}^{T}\mathbf{1}(v_t < \tau)
+\]
+
+Interpretation:
+
+- high straightness means motion is very direct
+- low curvature means fewer bends and corrections
+- high settling means motion quickly enters a low-motion stable state
+
+These are useful because assisted aim often looks too direct, too efficient, or too quickly stabilized.
+
+### Stochastic / variability features
+
+Direction entropy measures how concentrated the movement directions are. If movement directions are binned with probabilities \(p_i\), then:
+
+\[
+H = -\sum_i p_i \log p_i
+\]
+
+Lower entropy means the movement pattern is unusually concentrated or overly regular.
+
+Reversals measure sign changes in yaw or pitch deltas, for example:
+
+\[
+\mathbf{1}(\Delta \theta_t \Delta \theta_{t-1} < 0)
+\]
+
+This helps capture overshoot-and-correct behavior that humans often show.
+
+Timing regularity can be summarized by the variance of event intervals, such as shot intervals:
+
+\[
+\operatorname{Var}(d_1, d_2, \dots, d_n)
+\]
+
+Very low variance can indicate suspiciously machine-like regularity.
+
+Short-lag autocorrelation measures how strongly the signal resembles a delayed copy of itself:
+
+\[
+\rho_k =
+\frac{\sum_t (x_t - \bar{x})(x_{t-k} - \bar{x})}
+{\sum_t (x_t - \bar{x})^2}
+\]
+
+Interpretation:
+
+- lower entropy can mean motion is too constrained
+- fewer reversals can mean motion is too clean
+- lower timing variance can mean firing or stabilization timing is too regular
+- high short-lag autocorrelation can mean motion is overly smooth or mechanically consistent
+
+These features matter because cheating often removes too much natural variability rather than just making the aim more accurate.
+
+## Confounder-Aware Score Discounting
+
+The raw suspiciousness score is not treated as final. The system applies a causal-style discount when an anomaly could be explained by outside factors such as:
+
+- ping spikes
+- jitter increases
+- packet loss
+- sensitivity changes
+- patch or environment shifts
+
+Conceptually:
+
+\[
+g_t = r_t \cdot \lambda_t
+\]
+
+where:
+
+- \(r_t\) is the raw suspicion score
+- \(\lambda_t \in (0, 1]\) is a discount factor
+- \(g_t\) is the gated score
+
+If outside conditions provide a plausible explanation, then \(\lambda_t\) is reduced and the final score drops.
+
+Interpretation:
+
+- raw score asks: “does this look suspicious?”
+- gated score asks: “does this still look suspicious after accounting for confounders?”
+
+This is why the project calls the layer a **causal gate** or **confounder-aware score discounting** instead of a plain threshold.
+
+## Page-Hinkley Change Detection
+
+The project uses **Page-Hinkley** as its online change-point detector. It monitors the score stream over time and looks for a sustained upward shift rather than reacting to one noisy spike.
+
+In simplified form, it maintains:
+
+\[
+m_t = m_{t-1} + (x_t - \mu_t - \delta)
+\]
+
+where:
+
+- \(x_t\) is the current score
+- \(\mu_t\) is a running mean
+- \(\delta\) is a tolerance term
+
+It also tracks the historical minimum:
+
+\[
+M_t = \min(M_{t-1}, m_t)
+\]
+
+and signals a change when:
+
+\[
+m_t - M_t > \lambda
+\]
+
+for threshold \(\lambda\).
+
+Interpretation:
+
+- one isolated spike should not trigger a behavioral shift
+- a sustained increase in suspiciousness should
+- the first time this threshold is crossed becomes the anomaly timestamp shown in the app
+
 ### Smooth / structured side
 
 These features try to capture the deliberate part of movement:
