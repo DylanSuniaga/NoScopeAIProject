@@ -928,7 +928,7 @@ def build_csgo_session_feature_table(window_frame: pd.DataFrame) -> pd.DataFrame
 
 def _prepare_session_analysis(window_frame: pd.DataFrame) -> dict:
     ordered = window_frame.sort_values("t_end_s").reset_index(drop=True).copy()
-    detector = PageHinkley(delta=0.008, threshold=0.22, alpha=0.99)
+    detector = PageHinkley(delta=0.014, threshold=0.22, alpha=0.99)
     gate_notes = []
     rows = []
     for idx, row in ordered.iterrows():

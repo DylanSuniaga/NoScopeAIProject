@@ -267,7 +267,7 @@
     ],
     "gate_reasons": [],
     "high_window_count": 7,
-    "change_detected_count": 18
+    "change_detected_count": 17
   },
   "C00103_E26": {
     "verdict": "Suspicious",
@@ -312,7 +312,7 @@
     ],
     "gate_reasons": [],
     "high_window_count": 5,
-    "change_detected_count": 12
+    "change_detected_count": 11
   },
   "C00103_E12": {
     "verdict": "Suspicious",

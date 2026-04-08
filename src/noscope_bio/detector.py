@@ -68,7 +68,7 @@ def _std_floor(column: str) -> float:
 
 @dataclass
 class PageHinkley:
-    delta: float = 0.01
+    delta: float = 0.018
     threshold: float = 0.35
     alpha: float = 0.99
     mean: float = 0.0
