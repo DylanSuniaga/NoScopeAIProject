@@ -18,3 +18,25 @@ data/csgo_generated/classifier_windows.csv
 
 # Optional local artifacts
 .streamlit/secrets.toml
+
+# LaTeX build artifacts (compiled PDF is kept)
+report/*.aux
+report/*.log
+report/*.bbl
+report/*.blg
+report/*.fls
+report/*.fdb_latexmk
+report/*.out
+report/*.toc
+report/*.synctex.gz
+report/main.pdf
+
+# Raw chat exports (kept local, not for submission zip)
+chathistory/
+
+# Kept local (not for public repo): tool instructions + internal draft notes
+CLAUDE.md
+NoScope_Bio_Demo_Plan.md
+Project_Concerns_and_Datasets.md
+Section_2_Architecture_Workflow.md
+Team_Report_PPT_Notes.md

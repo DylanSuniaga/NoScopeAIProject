@@ -1,0 +1,5 @@
+model,val_balanced_acc,test_balanced_acc,test_precision,test_recall,test_specificity,test_mcc
+Majority-class baseline,,0.5,,0.0,1.0,0.0
+Stratified dummy,,0.483,0.3333,0.3067,0.6593,-0.0348
+baseline_logistic,0.5704,0.7107,0.5792,0.7067,0.7148,0.4073
+medium_hgbt,0.5551,0.6463,0.6311,0.4333,0.8593,0.3259

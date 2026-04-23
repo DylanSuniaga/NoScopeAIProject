@@ -1,0 +1,5 @@
+model,accuracy,balanced_accuracy,precision,recall,specificity,mcc
+NoScope-Bio (logistic regression),0.7119,0.7107,0.5792,0.7067,0.7148,0.4073
+medium_hgbt,0.7071,0.6463,0.6311,0.4333,0.8593,0.3259
+Stratified dummy,0.5333,0.483,0.3333,0.3067,0.6593,-0.0348
+Majority-class baseline,0.6429,0.5,,0.0,1.0,0.0

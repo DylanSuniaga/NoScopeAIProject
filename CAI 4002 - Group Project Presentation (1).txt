@@ -1,0 +1,160 @@
+Jacob Berdeal, Carlos Caruncho, Shah Chaitanya, 
+Eduardo Ramos, Dylan Suniaga
+
+NoScope-Bio: Behavioral Anti-Cheating Service 
+Today we present NoScope-Bio, a system designed to detect cheating in competitive games using behavioral biometrics instead of traditional signature-based methods.
+Script: Hello everyone, today we are presenting our project, NoScope-Bio, a behavioral-based cheating detection system for competitive gaming.
+
+The problem
+Cheating (aimbots, wallhacks, aim assists) is widespread
+Breaks fairness and player trust
+Current systems are reactive (detect known cheats)
+Struggle with new and adaptive cheats
+
+?
+!
+Despite many anti-cheat systems, cheating is still common. Most systems rely on known cheat signatures, which makes them ineffective against new or evolving cheating strategies.
+
+Script: 
+Cheating in online games, such as aimbots and wallhacks, continues to be a major problem. These cheats reduce fairness and damage player trust.
+Current anti-cheat systems mainly rely on detecting known cheat signatures, which makes them ineffective against new or adaptive cheating methods.
+Our current prototype mainly targets aim-related cheating, not full wallhack detection.
+
+Existing Solutions
+Signature-based detection (memory scans)
+Rule-based systems (extreme stats)
+Behavioral biometrics (user identification)
+Change-point detection (data shifts)
+Causal inference (explaining changes)
+Most prior methods treat behavioral modeling, anomaly detection, and causal validation separately.
+
+Existing work looks at these problems separately—biometrics, anomaly detection, and causal reasoning—but they are not combined into one unified system.
+
+Script: Existing solutions include signature-based detection, rule-based systems, and some behavioral analysis approaches.
+However, these methods are limited because they either depend on known cheats or analyze behavior at a general level rather than focusing on individual players. 
+Most current anti-cheat systems rely on known patterns. Some use signature-based detection, which looks for known cheat software in memory. Others use rule-based systems, like flagging unusually high stats. More recent work looks at behavioral biometrics, where a player’s movement or input style can act like an identity signature. There are also change-point detection methods that identify sudden shifts in data, and causal inference methods that help explain whether a change is suspicious or caused by something normal. The main issue is that these approaches are usually used separately rather than as one unified system.
+
+Key Research and Gap
+Behavioral biometrics can model stable, identity-specific player behavior
+Change-point detection methods like BOCPD, Page-Hinkley, and CUSUM can detect abrupt shifts
+Causal inference frameworks like DoWhy can test whether changes come from confounders
+Prior work shows these ideas are effective individually
+Gap: existing systems rarely integrate identity modeling, shift detection, and causal validation into one pipeline 
+
+
+In the research literature, behavioral biometrics has shown that user behavior can be modeled as something stable and identity-specific, not just random gameplay data. At the same time, change-point detection methods such as Bayesian Online Change-Point Detection, Page-Hinkley, and CUSUM are useful for catching sudden behavioral shifts in streaming data. Causal inference frameworks like DoWhy add another layer by checking whether those shifts might actually be explained by things like latency, hardware changes, or software updates. So the literature already shows that each of these ideas works on its own. The gap is that prior systems usually do not combine all three into one anti-cheat pipeline, and that is where our project contributes something new.
+
+Our solution
+Detect behavioral deviations, not cheat software
+Learn a player-specific behavioral fingerprint from aim telemetry
+Analyze causal windows over time
+Detect sustained suspicious shifts with change-point detection
+Apply a confounder-aware causal gate to reduce false positives
+Output a moderator-friendly anomaly report
+
+Our key idea is that every player has a unique playstyle. Instead of detecting cheats directly, we detect when a player suddenly behaves in a way that is statistically unlikely for them.
+
+Script: Our key idea is to shift the focus from detecting cheats to detecting impossible behavior changes.
+Every player has a unique playstyle, almost like a fingerprint.
+Our system learns this fingerprint and detects when a player behaves in a way that is statistically unlikely for them.
+
+
+System Architecture
+Gameplay Telemetry Data 
+Behavioral Fingerprint Encoder
+Causal Validation Layer
+Change-Point Detection
+Explainability & Output 
+The system is designed as a pipeline that takes gameplay data, processes it through multiple stages, and outputs whether cheating is detected.
+
+Blue is Input
+Purple is Processing
+Green is output
+Script: Our system works as a pipeline.
+It takes gameplay telemetry data as input, processes it through multiple stages, and outputs a cheating suspicion along with explainable evidence.
+The key advantage is that detection is personalized to each player.
+
+
+Input to the Model
+Aim movement patterns
+Synthetic: view yaw/pitch, yaw/pitch delta, angular speed, jerk, curvature, fire timing, server signals like ping, jitter, or packet loss
+CSGO: AttackerDeltaYaw, AttackerDeltaPitch, CrosshairToVictimYaw, CrosshairToVictimPitch, Firing
+Reaction times
+Input timing
+Movement behavior
+
+
+The system uses gameplay telemetry data such as aim movement, reaction times, input timing, and movement patterns.
+These features capture how a player naturally behaves during gameplay. 
+
+Behavioral data here means telemetry patterns that reflect how a player aims and shoots over time.
+
+
+Processing Pipeline
+Behavioral Fingerprint Encoder
+Current implementation: lightweight MLP over causal windows to get embeddings.
+Synthetic path: learns player-specific fingerprints
+CSGO path: learns window-level aim structure (then logistic regression for session)
+Change-Point Detection
+Current implementation: Page-Hinkley
+Purpose: detect the first sustained upward shift in suspiciousness
+Causal Validation Layer
+Current implementation: confounder-aware score discounting
+Used to suppress false alarms from lag, sensitivity changes, and similar factors
+The system has three main components.
+First, the behavioral fingerprint encoder learns a stable representation of each player’s behavior.
+Second, the change-point detection module identifies sudden shifts in behavior over time.
+Third, the causal validation layer ensures that detected changes are not caused by external factors like lag or hardware changes.
+
+
+Why These Features
+Smooth / structured features: angular speed, acceleration, jerk, curvature, straightness, settling
+Stochastic / variability features: entropy, reversals, micro-corrections, timing regularity, autocorrelation
+We model behavior as smooth intentional control plus stochastic residual variation.
+The encoder learns how a player normally behaves, the detector finds abnormal changes, and the causal layer checks if those changes are legitimate. 
+
+System Output
+Detected anomaly (cheat suspicion)
+Timestamp of event
+Affected features
+Confidence / deviation score
+
+
+
+
+
+The system outputs a structured report that includes when the anomaly occurred, which features changed, and how significant the deviation was.
+This makes the system interpretable and useful for human moderators.
+
+
+Evaluation Strategy
+Synthetic + Real CSGO Benchmark
+Held out player-level train/val/test split
+Balanced accuracy, precision, recall, specificity, MCC
+Bayes-based interpretation for deployment rarity
+
+
+Since real datasets are limited, we simulate To evaluate our system, we use synthetic gameplay data and controlled simulations where cheating behavior is intentionally introduced.
+We measure performance using metrics such as accuracy, precision, recall, false positive rate, and false negative rate.
+ and introduce cheating behavior to test detection accuracy. 
+
+Results
+deployed CSGO model: Our baseline logistic regression
+accuracy 0.712
+balanced accuracy 0.711
+precision 0.579
+recall 0.707
+specificity 0.715
+MCC 0.407
+It beat an LSTM on balanced accuracy
+
+
+
+Limitations
+Prototype mainly targets aim-related cheating
+Synthetic demo is polished, but not full real-world proof
+CSGO archive has only 5 raw fields
+real archive lacks server confounders like ping/jitter
+current demo export uses a smaller subset for speed
+
+
